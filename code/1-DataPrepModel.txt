@@ -1,0 +1,88 @@
+from keras.preprocessing.image import ImageDataGenerator
+from keras.optimizers import Adam
+from keras.preprocessing.image import img_to_array
+from keras.preprocessing import image
+from sklearn.preprocessing import MultiLabelBinarizer
+from matplotlib import pyplot as plt
+%matplotlib inline
+from imutils import paths
+import numpy as np
+import argparse
+import random
+import pickle
+import cv2
+import os
+
+EPOCHS = 40
+INIT_LR = 3e-4
+IMAGE_DIMS = (64,64, 3)
+BS = 40
+VALIDATION_STEPS=50
+
+work_dir='c:\\zigor\\summit2018dataset'
+
+saved_model=os.path.join(work_dir, 'detect_pills.model')
+saved_labels=os.path.join(work_dir, 'detect_pills.labels')
+
+trainingDatasetPath=os.path.join(work_dir, 'dataset\\train')
+validationDatasetPath=os.path.join(work_dir, 'dataset\\validation')
+
+imagePathsTrain = sorted(list(paths.list_images(trainingDatasetPath)))
+imagePathsValidate = sorted(list(paths.list_images(validationDatasetPath)))
+
+random.seed(42)
+random.shuffle(imagePathsTrain)
+random.shuffle(imagePathsValidate)
+
+data_train = []
+labels_train = []
+pathes_train=[]
+data_validate = []
+labels_validate = []
+pathes_validate=[]
+
+def show_cv2_image(image, label):
+    RGB_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    plt.imshow(RGB_img)
+    plt.show()
+    print(label)
+    
+
+for imagePath in imagePathsTrain:
+    image = cv2.imread(imagePath)
+    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+    l = imagePath.split(os.path.sep)[-2].split("_")
+    labels_train.append(l)
+    pathes_train.append(imagePath)
+    image = img_to_array(image)
+    data_train.append(image)
+
+for imagePath in imagePathsValidate:
+    image = cv2.imread(imagePath)
+    image = cv2.resize(image, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+    image = img_to_array(image)
+    data_validate.append(image)
+    l = imagePath.split(os.path.sep)[-2].split("_")
+    labels_validate.append(l)
+    pathes_validate.append(imagePath)
+
+
+data_train = np.array(data_train, dtype="float") / 255.0
+labels_train = np.array(labels_train)
+print("[INFO] Training Images: {} images ({:.2f}MB)".format(len(imagePathsTrain), data_train.nbytes / (1024 * 1000.0)))
+
+data_validate = np.array(data_validate, dtype="float") / 255.0
+labels_validate = np.array(labels_validate)
+print("[INFO] Validation images: {} images ({:.2f}MB)".format(len(imagePathsValidate), data_validate.nbytes / (1024 * 1000.0)))
+
+
+mlb = MultiLabelBinarizer()
+labels_train = mlb.fit_transform(labels_train)
+labels_validate = mlb.fit_transform(labels_validate)
+
+print("[INFO] encoded labels:")
+print(labels_train[:5]) 
+
+print("[INFO] classes:")
+for (i, label) in enumerate(mlb.classes_):
+    print("{}. {}".format(i + 1, label))

@@ -1,0 +1,25 @@
+from keras import layers
+from keras import models
+from keras.applications import VGG16
+from keras import backend as K
+from keras import regularizers
+
+model = models.Sequential()
+model.add(layers.Conv2D(16, (3, 3), activation='relu',input_shape=(IMAGE_DIMS[0], IMAGE_DIMS[1], IMAGE_DIMS[2])))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Dropout(0.3))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Dropout(0.3))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Dropout(0.3))
+model.add(layers.Conv2D(32, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Dropout(0.3))
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.0005),
+                activity_regularizer=regularizers.l1(0.0005)))
+model.add(layers.Dense(6, activation='softmax'))
+
+model.summary()

@@ -1,0 +1,43 @@
+from keras.preprocessing.image import img_to_array
+from keras.models import load_model
+import numpy as np
+import argparse
+import imutils
+import pickle
+import cv2
+import os
+from matplotlib import pyplot as plt
+%matplotlib inline
+from imutils import paths
+
+saved_model=os.path.join(work_dir, 'detect_pills.model')
+saved_labels=os.path.join(work_dir, 'detect_pills.labels')
+testDatasetPath=os.path.join(work_dir, 'dataset\\test')
+
+imagePaths = sorted(list(paths.list_images(testDatasetPath)))
+
+print("[INFO] loading network...")
+model = load_model(saved_model)
+mlb = pickle.loads(open(saved_labels, "rb").read())
+
+for imagePath in imagePaths:
+    image = cv2.imread(imagePath)
+    RGB_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    plt.imshow(RGB_img)
+    plt.show()
+    output = imutils.resize(image, width=300)
+
+    # pre-process the image for classification
+    image = cv2.resize(image, (64, 64))
+    image = image.astype("float") / 255.0
+    image = img_to_array(image)
+    image = np.expand_dims(image, axis=0)
+
+    print("[INFO] classifying image...")
+    proba = model.predict(image)[0]
+    
+    print (imagePath)
+    # show the probabilities for each of the individual labels
+    for (label, p) in zip(mlb.classes_, proba):
+        print("{}: {:.2f}%".format(label, p * 100))
+    

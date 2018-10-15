@@ -1,0 +1,54 @@
+from keras.preprocessing.image import ImageDataGenerator
+from keras import optimizers
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+
+aug = ImageDataGenerator(rotation_range=25, width_shift_range=0,height_shift_range=0, shear_range=0, 
+                         zoom_range=0,horizontal_flip=True, fill_mode="nearest")
+
+model.compile(loss='categorical_crossentropy',
+              optimizer=optimizers.RMSprop(lr=INIT_LR),
+              metrics=['categorical_accuracy'])
+history = model.fit_generator(aug.flow(data_train, labels_train, batch_size=BS),
+                              validation_data=(
+                                  data_validate, labels_validate),
+                              steps_per_epoch=len(data_train),
+                              epochs=EPOCHS,
+                              validation_steps=VALIDATION_STEPS,
+                              verbose=1)
+
+model.save(saved_model)
+
+print("[INFO] serializing label binarizer...")
+f = open(saved_labels, "wb")
+f.write(pickle.dumps(mlb))
+f.close()
+
+(eval_loss, eval_accuracy) = model.evaluate(data_validate, labels_validate, batch_size=len(data_train), verbose=1)
+
+print("[INFO] accuracy: {:.2f}%".format(eval_accuracy * 100))
+print("[INFO] Loss: {}".format(eval_loss))
+
+print(history.history.keys())
+
+plt.figure(1)
+
+# summarize history for accuracy
+
+plt.subplot(211)
+plt.plot(history.history['categorical_accuracy'])
+plt.plot(history.history['val_categorical_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+
+# summarize history for loss
+
+plt.subplot(212)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'validation'], loc='upper left')
+plt.show()

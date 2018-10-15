@@ -1,0 +1,20 @@
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
+from keras.optimizers import SGD
+import numpy as np 
+
+X = np.array([[0,0],[0,1],[1,0],[1,1]])
+y = np.array([[0],[1],[1],[0]])
+
+model = Sequential()
+model.add(Dense(2, input_dim=2, activation='sigmoid'))
+model.add(Dense(1, activation='sigmoid'))
+model.summary()
+
+model.compile(loss='binary_crossentropy', optimizer=SGD(lr=0.5))
+
+model.fit(X, y, batch_size=1, nb_epoch=3000)
+print(model.predict_proba(X))
+print("Trainable weights")
+print(model.get_weights())
+
